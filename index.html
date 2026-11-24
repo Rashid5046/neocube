@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NeoCube – Login, Signup & Dashboard</title>
+<meta name="theme-color" content="#4b1fa8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{
+  --c1:#ff3d81; --c2:#7a5cff; --c3:#00d4ff; --c4:#ffd23f; --c5:#2de2a6;
+  --ink:#1b1340; --glass:rgba(255,255,255,.16); --glass-b:rgba(255,255,255,.38);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{min-height:100%}
+body{
+  font-family:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+  color:#fff; overflow-x:hidden;
+  background:linear-gradient(120deg,#1a0b4d,#4b1fa8,#c2185b,#ff7a18,#0aa5c9,#1a0b4d);
+  background-size:400% 400%; animation:bg 24s ease infinite;
+}
+@keyframes bg{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+
+/* ---------- floating 3D cubes background ---------- */
+#bg{position:fixed;inset:0;perspective:900px;overflow:hidden;z-index:0;pointer-events:none}
+.cube{position:absolute;width:var(--s);height:var(--s);transform-style:preserve-3d;animation:drift var(--d) linear infinite;animation-delay:var(--dl)}
+.cube i{position:absolute;inset:0;border:1px solid rgba(255,255,255,.55);background:linear-gradient(135deg,var(--a),var(--b));opacity:.6;box-shadow:inset 0 0 18px rgba(255,255,255,.35);border-radius:6px}
+.cube i:nth-child(1){transform:translateZ(calc(var(--s)/2))}
+.cube i:nth-child(2){transform:rotateY(180deg) translateZ(calc(var(--s)/2))}
+.cube i:nth-child(3){transform:rotateY(90deg) translateZ(calc(var(--s)/2))}
+.cube i:nth-child(4){transform:rotateY(-90deg) translateZ(calc(var(--s)/2))}
+.cube i:nth-child(5){transform:rotateX(90deg) translateZ(calc(var(--s)/2))}
+.cube i:nth-child(6){transform:rotateX(-90deg) translateZ(calc(var(--s)/2))}
+@keyframes drift{
+  0%{transform:translate3d(0,0,0) rotateX(0) rotateY(0)}
+  50%{transform:translate3d(30px,-60px,60px) rotateX(180deg) rotateY(180deg)}
+  100%{transform:translate3d(0,0,0) rotateX(360deg) rotateY(360deg)}
+}
+.blob{position:fixed;border-radius:50%;filter:blur(70px);opacity:.45;z-index:0;pointer-events:none;animation:pulse 9s ease-in-out infinite}
+.blob.b1{width:340px;height:340px;background:var(--c3);top:-80px;left:-80px}
+.blob.b2{width:380px;height:380px;background:var(--c1);bottom:-120px;right:-100px;animation-delay:-4s}
+@keyframes pulse{50%{transform:scale(1.25)}}
+
+/* ---------- shared ---------- */
+.view{position:relative;z-index:1;min-height:100vh;min-height:100dvh;display:none}
+.view.active{display:flex}
+.logo3d{width:54px;height:54px;perspective:300px;flex:none}
+.logo3d .cube{--s:34px;left:10px;top:10px;animation:spin 6s linear infinite}
+.logo3d .cube i{opacity:.95}
+@keyframes spin{to{transform:rotateX(360deg) rotateY(360deg)}}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.35rem;letter-spacing:.5px}
+.brand span{background:linear-gradient(90deg,var(--c4),var(--c1),var(--c3));-webkit-background-clip:text;background-clip:text;color:transparent}
+
+.btn3d{
+  position:relative;border:0;cursor:pointer;width:100%;padding:14px 18px;border-radius:16px;
+  font-size:1rem;font-weight:800;color:#fff;letter-spacing:.4px;
+  background:linear-gradient(135deg,var(--c1),var(--c2));
+  box-shadow:0 7px 0 #4a2bb0,0 16px 24px rgba(0,0,0,.35),inset 0 2px 0 rgba(255,255,255,.4);
+  transition:transform .12s,box-shadow .12s,filter .2s;
+}
+.btn3d:hover{filter:brightness(1.1)}
+.btn3d:active{transform:translateY(6px);box-shadow:0 1px 0 #4a2bb0,0 4px 8px rgba(0,0,0,.35),inset 0 2px 0 rgba(255,255,255,.4)}
+.btn3d.alt{background:linear-gradient(135deg,var(--c3),var(--c5));box-shadow:0 7px 0 #0a7f8f,0 16px 24px rgba(0,0,0,.3),inset 0 2px 0 rgba(255,255,255,.45)}
+.btn3d.alt:active{box-shadow:0 1px 0 #0a7f8f,0 4px 8px rgba(0,0,0,.3),inset 0 2px 0 rgba(255,255,255,.45)}
+.btn3d.sm{width:auto;padding:10px 18px;font-size:.9rem;box-shadow:0 5px 0 #4a2bb0,0 10px 16px rgba(0,0,0,.3),inset 0 2px 0 rgba(255,255,255,.4)}
+.btn3d.sm:active{transform:translateY(4px);box-shadow:0 1px 0 #4a2bb0,0 3px 6px rgba(0,0,0,.3)}
+
+/* ---------- AUTH ---------- */
+#auth{align-items:center;justify-content:center;padding:24px 16px}
+.stage{width:100%;max-width:410px;perspective:1400px}
+.flip{display:grid;transform-style:preserve-3d;transition:transform .9s cubic-bezier(.68,-.35,.27,1.3)}
+.flip.is-signup{transform:rotateY(180deg)}
+.face{
+  grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  padding:34px 28px 28px;border-radius:30px;
+  background:linear-gradient(145deg,rgba(255,255,255,.26),rgba(255,255,255,.07));
+  border:1px solid var(--glass-b);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  box-shadow:0 30px 60px rgba(10,0,50,.55),0 0 0 6px rgba(255,255,255,.06),inset 0 1px 0 rgba(255,255,255,.6);
+}
+.face.back{transform:rotateY(180deg)}
+.face h2{font-size:1.7rem;margin:18px 0 4px;text-shadow:0 3px 10px rgba(0,0,0,.35)}
+.face p.sub{opacity:.85;font-size:.92rem;margin-bottom:22px}
+.field{position:relative;margin-bottom:16px}
+.field label{display:block;font-size:.78rem;font-weight:700;margin:0 0 6px 6px;opacity:.9;letter-spacing:.4px}
+.field input{
+  width:100%;padding:14px 46px 14px 16px;border-radius:14px;border:2px solid transparent;
+  background:rgba(20,8,70,.45);color:#fff;font-size:1rem;outline:none;
+  box-shadow:inset 0 4px 10px rgba(0,0,0,.45),0 1px 0 rgba(255,255,255,.25);
+  transition:border-color .2s,box-shadow .2s,transform .2s;
+}
+.field input::placeholder{color:rgba(255,255,255,.5)}
+.field input:focus{border-color:var(--c3);transform:translateZ(0) translateY(-2px);box-shadow:inset 0 4px 10px rgba(0,0,0,.45),0 8px 20px rgba(0,212,255,.35)}
+.field.err input{border-color:var(--c1)}
+.eye{position:absolute;right:10px;bottom:9px;width:34px;height:34px;border:0;border-radius:10px;background:rgba(255,255,255,.14);color:#fff;cursor:pointer;font-size:1rem}
+.msg{min-height:18px;font-size:.8rem;color:#ffd1e1;margin:-4px 0 10px 6px;font-weight:600}
+.switch{text-align:center;margin-top:22px;font-size:.92rem}
+.switch a{color:var(--c4);font-weight:800;cursor:pointer;text-decoration:none;border-bottom:2px dashed var(--c4)}
+.strength{height:6px;border-radius:6px;background:rgba(0,0,0,.35);margin:-8px 0 14px;overflow:hidden}
+.strength b{display:block;height:100%;width:0;border-radius:6px;transition:width .3s,background .3s}
+
+/* ---------- DASHBOARD ---------- */
+#dash{flex-direction:column;padding:18px 16px 40px;max-width:1180px;margin:0 auto;width:100%}
+.top{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:12px 16px;border-radius:22px;margin-bottom:22px;
+  background:var(--glass);border:1px solid var(--glass-b);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  box-shadow:0 18px 40px rgba(10,0,50,.4),inset 0 1px 0 rgba(255,255,255,.5);
+}
+.top .right{display:flex;align-items:center;gap:12px}
+.avatar{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:1.1rem;background:linear-gradient(135deg,var(--c4),var(--c1));box-shadow:0 4px 0 #a3203f,0 8px 14px rgba(0,0,0,.35)}
+.uname{font-weight:700;font-size:.95rem;line-height:1.1}
+.uname small{display:block;opacity:.75;font-weight:500;font-size:.72rem}
+.hero{
+  position:relative;display:flex;align-items:center;justify-content:space-between;gap:20px;overflow:hidden;
+  padding:28px;border-radius:28px;margin-bottom:22px;
+  background:linear-gradient(120deg,rgba(255,61,129,.55),rgba(122,92,255,.55),rgba(0,212,255,.5));
+  border:1px solid var(--glass-b);box-shadow:0 26px 50px rgba(10,0,50,.5),inset 0 1px 0 rgba(255,255,255,.55);
+}
+.hero h1{font-size:clamp(1.4rem,4vw,2.3rem);line-height:1.15;text-shadow:0 4px 14px rgba(0,0,0,.35)}
+.hero p{margin-top:8px;opacity:.9;max-width:460px;font-size:.95rem}
+.hero .big3d{perspective:700px;width:120px;height:120px;flex:none;position:relative}
+.hero .big3d .cube{--s:84px;left:18px;top:18px;animation:spin 9s linear infinite}
+.hero .big3d .cube i{opacity:.9}
+.grid{display:grid;gap:18px;grid-template-columns:repeat(4,1fr);margin-bottom:22px}
+.card{
+  position:relative;padding:20px;border-radius:24px;transform-style:preserve-3d;
+  background:linear-gradient(150deg,rgba(255,255,255,.28),rgba(255,255,255,.07));
+  border:1px solid var(--glass-b);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  box-shadow:0 22px 40px rgba(10,0,50,.45),inset 0 1px 0 rgba(255,255,255,.55);
+  transition:transform .2s ease-out,box-shadow .3s;
+}
+.card.tilt:hover{box-shadow:0 34px 60px rgba(10,0,50,.6),inset 0 1px 0 rgba(255,255,255,.55)}
+.stat .ico{width:50px;height:50px;border-radius:16px;display:grid;place-items:center;font-size:1.5rem;margin-bottom:14px;transform:translateZ(30px);box-shadow:0 6px 0 rgba(0,0,0,.25),0 12px 18px rgba(0,0,0,.3),inset 0 2px 0 rgba(255,255,255,.5)}
+.stat:nth-child(1) .ico{background:linear-gradient(135deg,var(--c1),#ff8a5c)}
+.stat:nth-child(2) .ico{background:linear-gradient(135deg,var(--c3),var(--c2))}
+.stat:nth-child(3) .ico{background:linear-gradient(135deg,var(--c5),#a8ff78)}
+.stat:nth-child(4) .ico{background:linear-gradient(135deg,var(--c4),#ff9f1c)}
+.stat .num{font-size:1.9rem;font-weight:800;transform:translateZ(22px)}
+.stat .lbl{opacity:.85;font-size:.85rem;transform:translateZ(12px)}
+.stat .chg{position:absolute;top:18px;right:18px;font-size:.75rem;font-weight:800;padding:4px 9px;border-radius:20px;background:rgba(45,226,166,.28);color:#b8ffe6}
+.stat .chg.dn{background:rgba(255,61,129,.3);color:#ffd1e1}
+.row{display:grid;gap:18px;grid-template-columns:1.6fr 1fr}
+.card h3{font-size:1.05rem;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+.card h3 small{opacity:.7;font-weight:500;font-size:.78rem}
+.bars{display:flex;align-items:flex-end;gap:12px;height:210px;padding-top:10px}
+.bar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:8px;font-size:.72rem;opacity:.95}
+.bar b{
+  width:100%;max-width:46px;height:0;border-radius:12px 12px 4px 4px;position:relative;
+  background:linear-gradient(180deg,var(--k1),var(--k2));
+  box-shadow:6px 0 0 rgba(0,0,0,.22),0 12px 18px rgba(0,0,0,.3),inset 0 2px 0 rgba(255,255,255,.55);
+  transition:height 1.2s cubic-bezier(.2,1.2,.3,1);
+}
+.bar b::before{content:"";position:absolute;left:0;right:0;top:-9px;height:10px;border-radius:12px 12px 0 0;background:rgba(255,255,255,.4);transform:skewX(-30deg) scaleX(.85);transform-origin:bottom}
+.ring-wrap{display:grid;place-items:center;margin:8px 0 14px}
+.ring{width:170px;height:170px;border-radius:50%;display:grid;place-items:center;
+  background:conic-gradient(var(--c4) 0 var(--p,0%),rgba(0,0,0,.3) 0);
+  background:conic-gradient(from 0deg,var(--c1),var(--c4),var(--c5),var(--c3) var(--p,0%),rgba(0,0,0,.3) 0);
+  box-shadow:0 14px 0 rgba(0,0,0,.25),0 24px 34px rgba(0,0,0,.4);transition:--p 1s}
+.ring div{width:124px;height:124px;border-radius:50%;display:grid;place-items:center;text-align:center;background:linear-gradient(145deg,#3b1a8f,#1d0b5a);box-shadow:inset 0 6px 14px rgba(0,0,0,.6),0 1px 0 rgba(255,255,255,.3)}
+.ring strong{font-size:2rem;display:block;line-height:1}
+.ring span{font-size:.72rem;opacity:.8}
+.legend{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;font-size:.78rem}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}
+.act{list-style:none;margin-top:6px}
+.act li{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px dashed rgba(255,255,255,.22)}
+.act li:last-child{border:0}
+.act .dot{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;flex:none;box-shadow:0 4px 0 rgba(0,0,0,.25),inset 0 2px 0 rgba(255,255,255,.45)}
+.act .t{font-size:.9rem;font-weight:600}
+.act .t small{display:block;opacity:.7;font-weight:500;font-size:.75rem}
+.act time{margin-left:auto;font-size:.72rem;opacity:.7;white-space:nowrap}
+.full{grid-column:1/-1}
+
+/* ---------- ACCOUNT REGISTRATION ---------- */
+.acc{margin-bottom:22px}
+.acc h3{font-size:1.2rem}
+/* ---------- MENU TILES ---------- */
+.menu h3{font-size:1.2rem;margin-bottom:6px}
+.menu .msub{opacity:.75;font-size:.85rem;margin-bottom:16px}
+.mgroup{font-size:.72rem;font-weight:800;letter-spacing:1px;opacity:.7;margin:14px 0 10px 4px}
+.tiles{display:grid;gap:14px;grid-template-columns:repeat(4,1fr)}
+.tile{position:relative;border:0;cursor:pointer;color:#fff;text-align:left;padding:16px 16px 14px;border-radius:20px;font-family:inherit;
+  background:linear-gradient(145deg,var(--t1),var(--t2));
+  box-shadow:0 7px 0 var(--tb),0 16px 24px rgba(0,0,0,.35),inset 0 2px 0 rgba(255,255,255,.4);
+  transition:transform .12s,box-shadow .12s,filter .2s}
+.tile:hover{filter:brightness(1.1)}
+.tile:active{transform:translateY(6px);box-shadow:0 1px 0 var(--tb),0 4px 8px rgba(0,0,0,.35),inset 0 2px 0 rgba(255,255,255,.4)}
+.tile .ti{font-size:1.7rem;display:block;margin-bottom:8px}
+.tile b{display:block;font-size:.98rem}
+.tile small{display:block;opacity:.85;font-size:.74rem;margin-top:2px}
+.tile .bdg{position:absolute;top:12px;right:12px;min-width:28px;text-align:center;padding:3px 9px;border-radius:20px;font-size:.75rem;font-weight:800;background:rgba(0,0,0,.28)}
+.tile.t-acc{--t1:var(--c1);--t2:var(--c2);--tb:#4a2bb0}
+.tile.t-list{--t1:var(--c3);--t2:var(--c5);--tb:#0a7f8f}
+.tile.t-prd{--t1:var(--c4);--t2:#ff7a18;--tb:#a3560c}
+.tile.t-prdl{--t1:#a259ff;--t2:var(--c1);--tb:#5a2aa0}
+.sheet.wide{max-width:1040px}
+/* colourful popups */
+.sheet{background:linear-gradient(135deg,rgba(104,40,214,.97) 0%,rgba(190,30,120,.95) 48%,rgba(10,130,170,.96) 100%)!important;overflow:hidden}
+.sheet::before{content:"";position:absolute;left:0;right:0;top:0;height:7px;background:linear-gradient(90deg,var(--c1),var(--c4),var(--c5),var(--c3),var(--c2))}
+.sheet h3{background:linear-gradient(90deg,#fff,var(--c4));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sheet h3 small{-webkit-text-fill-color:rgba(255,255,255,.8)}
+.accform .field{--fc:var(--c4)}
+.accform .field:nth-child(6n+2){--fc:var(--c3)}
+.accform .field:nth-child(6n+3){--fc:var(--c5)}
+.accform .field:nth-child(6n+4){--fc:#ff9ec4}
+.accform .field:nth-child(6n+5){--fc:#c9b3ff}
+.accform .field:nth-child(6n+6){--fc:#ffb36b}
+.accform .field label{color:var(--fc);opacity:1}
+.accform .field input,.accform .field select,.accform .field textarea{border-bottom:3px solid var(--fc)}
+.accform .field.err input,.accform .field.err select,.accform .field.err textarea{border-color:var(--c1)}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:6px;border-radius:18px;background:rgba(20,8,70,.45);box-shadow:inset 0 4px 10px rgba(0,0,0,.45);margin-bottom:18px}
+.seg button{border:0;padding:13px 8px;border-radius:13px;background:transparent;color:#fff;font-weight:800;font-size:.95rem;cursor:pointer;transition:all .15s;opacity:.75}
+.seg button.on{opacity:1;transform:translateY(-2px)}
+.seg button.on[data-t="party"]{background:linear-gradient(135deg,var(--c1),#ff8a5c);box-shadow:0 5px 0 #a3203f,0 10px 16px rgba(0,0,0,.3),inset 0 2px 0 rgba(255,255,255,.4)}
+.seg button.on[data-t="supplier"]{background:linear-gradient(135deg,var(--c3),var(--c5));box-shadow:0 5px 0 #0a7f8f,0 10px 16px rgba(0,0,0,.3),inset 0 2px 0 rgba(255,255,255,.4)}
+.tag.party{background:rgba(255,61,129,.4);color:#ffe0ea}
+.tag.supplier{background:rgba(45,226,166,.35);color:#d2fff0}
+.sheet .acchead{margin-top:0}
+.accform{display:grid;grid-template-columns:repeat(3,1fr);gap:0 16px}
+.accform .wide{grid-column:1/-1}
+.accform .span2{grid-column:span 2}
+.field select,.field textarea{
+  width:100%;padding:14px 16px;border-radius:14px;border:2px solid transparent;
+  background:rgba(20,8,70,.45);color:#fff;font-size:1rem;outline:none;font-family:inherit;
+  box-shadow:inset 0 4px 10px rgba(0,0,0,.45),0 1px 0 rgba(255,255,255,.25);
+  transition:border-color .2s,box-shadow .2s;
+}
+.field textarea{resize:vertical;min-height:70px}
+.field select option{color:#1b1340;background:#fff}
+.field select:focus,.field textarea:focus{border-color:var(--c3);box-shadow:inset 0 4px 10px rgba(0,0,0,.45),0 8px 20px rgba(0,212,255,.35)}
+.field.err input,.field.err select,.field.err textarea{border-color:var(--c1)}
+.field input[readonly]{opacity:.7;font-weight:800;letter-spacing:1px}
+.accbtns{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.accbtns .btn3d{width:auto;min-width:200px}
+.btn3d.ghost{background:rgba(255,255,255,.16);box-shadow:0 5px 0 rgba(0,0,0,.3),inset 0 2px 0 rgba(255,255,255,.3)}
+.acchead{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin:16px 0 12px}
+.acchead h3{margin:0}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:0;cursor:pointer;color:#fff;padding:8px 14px;border-radius:20px;font-weight:700;font-size:.8rem;background:rgba(255,255,255,.16);box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+.chip.on{background:linear-gradient(135deg,var(--c1),var(--c2))}
+.srch{padding:10px 14px;border-radius:14px;border:0;outline:none;background:rgba(20,8,70,.45);color:#fff;font-size:.9rem;min-width:260px;max-width:100%;box-shadow:inset 0 3px 8px rgba(0,0,0,.4)}
+.srch::placeholder{color:rgba(255,255,255,.5)}
+.tblwrap{overflow-x:auto;border-radius:16px;background:rgba(20,8,70,.28)}
+.tbl{width:100%;border-collapse:collapse;font-size:.86rem;min-width:640px}
+.tbl th{text-align:left;padding:12px 12px;opacity:.75;font-size:.72rem;letter-spacing:.5px;white-space:nowrap}
+.tbl td{padding:11px 12px;border-top:1px dashed rgba(255,255,255,.2);vertical-align:middle}
+.tbl td small{display:block;opacity:.65;font-size:.72rem}
+.tag{display:inline-block;padding:4px 10px;border-radius:20px;font-size:.7rem;font-weight:800}
+.tbl .ac{white-space:nowrap;text-align:right}
+.ib{border:0;cursor:pointer;width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,.16);color:#fff;font-size:.9rem;margin-left:4px}
+.ib:hover{background:rgba(255,255,255,.3)}
+.empty{text-align:center;padding:26px 10px;opacity:.75;font-size:.9rem}
+
+/* ---------- PRODUCT REGISTRATION ---------- */
+.hint{grid-column:1/-1;font-size:.84rem;font-weight:700;margin:-4px 0 14px 6px;color:#b8ffe6;min-height:18px}
+.hint.neg{color:#ffd1e1}
+.tag.low{background:rgba(255,61,129,.35);color:#ffd1e1}
+.tag.ok{background:rgba(45,226,166,.28);color:#b8ffe6}
+
+/* ---------- MODAL FORMS ---------- */
+.sechead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.card .sechead h3{margin:0}
+.modal{position:fixed;inset:0;z-index:40;display:none;align-items:flex-start;justify-content:center;padding:24px 14px;background:rgba(10,0,40,.68);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);overflow-y:auto;overscroll-behavior:contain}
+.modal.show{display:flex}
+.sheet{position:relative;width:100%;max-width:860px;margin:auto;padding:26px;border-radius:28px;background:linear-gradient(145deg,rgba(82,36,180,.97),rgba(34,12,92,.98));border:1px solid var(--glass-b);box-shadow:0 30px 70px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.45);animation:pop .3s cubic-bezier(.2,1.2,.4,1)}
+@keyframes pop{from{transform:scale(.94) translateY(24px);opacity:0}}
+.sheet h3{font-size:1.25rem;margin:0 44px 16px 0}
+.sheet h3 small{opacity:.7;font-weight:500;font-size:.78rem;margin-left:6px}
+.mclose{position:absolute;top:16px;right:16px;width:38px;height:38px;border:0;border-radius:12px;background:rgba(255,255,255,.16);color:#fff;font-size:1.1rem;cursor:pointer}
+.mclose:hover{background:rgba(255,255,255,.3)}
+@media(max-width:520px){.modal{padding:12px 8px}.sheet{padding:20px 16px;border-radius:22px}}
+
+/* toast */
+#toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,120px);z-index:50;padding:13px 22px;border-radius:16px;font-weight:700;font-size:.92rem;
+  background:linear-gradient(135deg,var(--c2),var(--c1));box-shadow:0 6px 0 #4a2bb0,0 16px 30px rgba(0,0,0,.45);transition:transform .45s cubic-bezier(.2,1.4,.4,1);max-width:90vw;text-align:center}
+#toast.show{transform:translate(-50%,0)}
+
+/* ---------- responsive ---------- */
+@media(max-width:900px){
+  .accform{grid-template-columns:repeat(2,1fr)}
+  .accform .span2{grid-column:1/-1}
+  .grid{grid-template-columns:repeat(2,1fr)}
+  .tiles{grid-template-columns:repeat(2,1fr)}
+  .row{grid-template-columns:1fr}
+}
+@media(max-width:520px){
+  .accform{grid-template-columns:1fr}
+  .accbtns .btn3d{width:100%}
+  .face{padding:28px 20px 22px;border-radius:26px}
+  .grid{gap:12px}
+  .tiles{gap:12px}
+  .tile{padding:14px 12px}
+  .card{padding:16px;border-radius:20px}
+  .stat .num{font-size:1.5rem}
+  .stat .chg{top:12px;right:12px}
+  .hero{padding:20px;border-radius:24px}
+  .hero .big3d{width:84px;height:84px}
+  .hero .big3d .cube{--s:56px;left:14px;top:14px}
+  .uname{display:none}
+  .bars{gap:7px;height:180px}
+  .top{padding:10px 12px}
+  .brand{font-size:1.1rem}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div id="bg"></div>
+<div class="blob b1"></div><div class="blob b2"></div>
+
+<!-- ================= AUTH ================= -->
+<main id="auth" class="view active">
+  <div class="stage">
+    <div class="flip" id="flip">
+
+      <!-- LOGIN -->
+      <section class="face front">
+        <div class="brand"><div class="logo3d" data-logo></div><span class="brand-name">NeoCube</span></div>
+        <h2>Welcome back 👋</h2>
+        <p class="sub">Login karo aur apna dashboard dekho.</p>
+        <form id="loginForm" novalidate>
+          <div class="field"><label>EMAIL</label><input type="email" id="lEmail" placeholder="you@example.com" autocomplete="email"></div>
+          <div class="field"><label>PASSWORD</label><input type="password" id="lPass" placeholder="••••••••" autocomplete="current-password"><button type="button" class="eye" data-eye="lPass" aria-label="Show password">👁</button></div>
+          <div class="msg" id="lMsg"></div>
+          <button class="btn3d" type="submit">LOGIN</button>
+        </form>
+        <div class="switch">Account nahi hai? <a id="toSignup">Sign up</a></div>
+      </section>
+
+      <!-- SIGNUP -->
+      <section class="face back">
+        <div class="brand"><div class="logo3d" data-logo></div><span class="brand-name">NeoCube</span></div>
+        <h2>Create account ✨</h2>
+        <p class="sub">Sirf 10 second mein naya account banao.</p>
+        <form id="signupForm" novalidate>
+          <div class="field"><label>FULL NAME</label><input type="text" id="sName" placeholder="Your name" autocomplete="name"></div>
+          <div class="field"><label>EMAIL</label><input type="email" id="sEmail" placeholder="you@example.com" autocomplete="email"></div>
+          <div class="field"><label>PASSWORD</label><input type="password" id="sPass" placeholder="Min 6 characters" autocomplete="new-password"><button type="button" class="eye" data-eye="sPass" aria-label="Show password">👁</button></div>
+          <div class="strength"><b id="sBar"></b></div>
+          <div class="msg" id="sMsg"></div>
+          <button class="btn3d alt" type="submit">SIGN UP</button>
+        </form>
+        <div class="switch">Pehle se account hai? <a id="toLogin">Login</a></div>
+      </section>
+
+    </div>
+  </div>
+</main>
+
+<!-- ================= DASHBOARD ================= -->
+<main id="dash" class="view">
+  <header class="top">
+    <div class="brand"><div class="logo3d" data-logo></div><span class="brand-name">NeoCube</span></div>
+    <div class="right">
+      <div class="uname" id="uName">User<small id="uMail"></small></div>
+      <div class="avatar" id="uAv">U</div>
+      <button class="btn3d sm" id="logout">Logout</button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div>
+      <h1 id="greet">Hello!</h1>
+      <p>Aaj ka overview taiyar hai. Sales barh rahi hain aur aapki team full speed pe chal rahi hai. 🚀</p>
+    </div>
+    <div class="big3d" data-logo-big></div>
+  </section>
+
+  <section class="grid">
+    <div class="card stat tilt"><div class="ico">💰</div><span class="chg">+12.5%</span><div class="num" data-count="48250" data-pre="$">0</div><div class="lbl">Total Revenue</div></div>
+    <div class="card stat tilt"><div class="ico">👥</div><span class="chg">+8.2%</span><div class="num" data-count="12840">0</div><div class="lbl">Active Users</div></div>
+    <div class="card stat tilt"><div class="ico">🛒</div><span class="chg">+21%</span><div class="num" data-count="3567">0</div><div class="lbl">New Orders</div></div>
+    <div class="card stat tilt"><div class="ico">⭐</div><span class="chg dn">-1.4%</span><div class="num" data-count="4.8" data-dec="1">0</div><div class="lbl">Avg. Rating</div></div>
+  </section>
+
+  <section class="card acc menu" id="menu">
+    <h3>🧭 Menu</h3>
+    <div class="msub">Register karne ya list dekhne ke liye button dabao.</div>
+
+    <div class="mgroup">ACCOUNTS</div>
+    <div class="tiles">
+      <button class="tile t-acc" type="button" id="aNew"><span class="ti">➕</span><b>Account Register</b><small>Naya account banao</small></button>
+      <button class="tile t-list" type="button" id="aList"><span class="bdg" id="aBadge">0</span><span class="ti">📒</span><b>Account List</b><small>Sab accounts dekho</small></button>
+    </div>
+
+    <div class="mgroup">PRODUCTS</div>
+    <div class="tiles">
+      <button class="tile t-prd" type="button" id="pNew"><span class="ti">➕</span><b>Product Register</b><small>Naya product banao</small></button>
+      <button class="tile t-prdl" type="button" id="pList"><span class="bdg" id="pBadge">0</span><span class="ti">📦</span><b>Product List</b><small>Sab products dekho</small></button>
+    </div>
+  </section>
+
+  <section class="row">
+    <div class="card tilt">
+      <h3>Weekly Sales <small>Last 7 days</small></h3>
+      <div class="bars" id="bars"></div>
+    </div>
+    <div class="card tilt">
+      <h3>Monthly Goal <small>Nov 2026</small></h3>
+      <div class="ring-wrap"><div class="ring" id="ring"><div><span><strong id="ringN">0%</strong><span>completed</span></span></div></div></div>
+      <div class="legend">
+        <span><i style="background:var(--c1)"></i>Sales</span>
+        <span><i style="background:var(--c4)"></i>Leads</span>
+        <span><i style="background:var(--c5)"></i>Retention</span>
+        <span><i style="background:var(--c3)"></i>Growth</span>
+      </div>
+    </div>
+    <div class="card tilt full">
+      <h3>Recent Activity <small>Live</small></h3>
+      <ul class="act">
+        <li><div class="dot" style="background:linear-gradient(135deg,var(--c1),#ff8a5c)">🛍️</div><div class="t">New order #4821 received<small>Ali Raza • $129.00</small></div><time>2 min ago</time></li>
+        <li><div class="dot" style="background:linear-gradient(135deg,var(--c3),var(--c2))">👤</div><div class="t">New user registered<small>sara.khan@mail.com</small></div><time>18 min ago</time></li>
+        <li><div class="dot" style="background:linear-gradient(135deg,var(--c5),#a8ff78)">✅</div><div class="t">Payment confirmed<small>Invoice #9034 • $560.00</small></div><time>1 hr ago</time></li>
+        <li><div class="dot" style="background:linear-gradient(135deg,var(--c4),#ff9f1c)">💬</div><div class="t">New 5★ review posted<small>"Bohat zabardast service!"</small></div><time>3 hr ago</time></li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<div class="modal" id="accListModal" aria-hidden="true">
+  <div class="sheet wide">
+    <button type="button" class="mclose" data-close="accListModal" aria-label="Close">✕</button>
+    <h3>📒 Account List <small id="aCount"></small></h3>
+    <div class="acchead">
+      <div class="chips" id="aFilter">
+        <button class="chip on" data-f="all">All</button>
+        <button class="chip" data-f="party">Party</button>
+        <button class="chip" data-f="supplier">Supplier</button>
+      </div>
+      <input class="srch" id="aSearch" type="search" placeholder="🔎 Search naam / phone / code">
+    </div>
+    <div class="tblwrap">
+      <table class="tbl">
+        <thead><tr><th>CODE</th><th>NAME</th><th>CATEGORY</th><th>PHONE</th><th>CITY</th><th>CREDIT LIMIT</th><th>OPENING BAL.</th><th></th></tr></thead>
+        <tbody id="aBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="prodListModal" aria-hidden="true">
+  <div class="sheet wide">
+    <button type="button" class="mclose" data-close="prodListModal" aria-label="Close">✕</button>
+    <h3>📦 Product List <small id="pCount"></small></h3>
+    <div class="acchead">
+      <div class="chips" id="pFilter">
+        <button class="chip on" data-f="all">All</button>
+        <button class="chip" data-f="low">Low stock</button>
+      </div>
+      <input class="srch" id="pSearch" type="search" placeholder="🔎 Search naam / company / code">
+    </div>
+    <div class="tblwrap">
+      <table class="tbl" style="min-width:820px">
+        <thead><tr><th>CODE</th><th>PRODUCT</th><th>PACK</th><th>COMPANY</th><th>PUR. RATE</th><th>SALE RATE</th><th>STOCK</th><th>LIMIT</th><th></th></tr></thead>
+        <tbody id="pBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="accModal" aria-hidden="true">
+  <div class="sheet">
+    <button type="button" class="mclose" data-close="accModal" aria-label="Close">✕</button>
+    <h3 id="aTitle">Account Registration</h3>
+    <div class="seg" id="accType">
+      <button type="button" class="on" data-t="party">👥 Party (Customer)</button>
+      <button type="button" data-t="supplier">🏭 Supplier</button>
+    </div>
+    <form id="accForm" class="accform" novalidate>
+      <div class="field"><label>ACCOUNT CODE</label><input type="text" id="aCode" readonly></div>
+      <div class="field span2"><label id="aNameL">ACCOUNT NAME *</label><input type="text" id="aName" placeholder="Account ka naam"></div>
+      <div class="field"><label>CONTACT PERSON</label><input type="text" id="aPerson" placeholder="Rabta karne wala shakhs"></div>
+      <div class="field"><label>PHONE / MOBILE *</label><input type="tel" id="aPhone" placeholder="03xx-xxxxxxx" inputmode="tel"></div>
+      <div class="field"><label>EMAIL</label><input type="email" id="aEmail" placeholder="name@example.com"></div>
+      <div class="field"><label>CITY</label><input type="text" id="aCity" placeholder="Shehar"></div>
+      <div class="field"><label>NTN / CNIC</label><input type="text" id="aTax" placeholder="Tax / shanakhti number"></div>
+      <div class="field"><label>CREDIT LIMIT</label><input type="number" id="aLim" min="0" step="any" placeholder="0" inputmode="decimal"></div>
+      <div class="field"><label>OPENING BALANCE</label><input type="number" id="aOpen" min="0" step="any" placeholder="0" inputmode="decimal"></div>
+      <div class="field"><label>BALANCE TYPE</label>
+        <select id="aDrCr"><option value="Dr">Debit (Dr) – Receivable</option><option value="Cr">Credit (Cr) – Payable</option></select>
+      </div>
+      <div class="field wide"><label>ADDRESS</label><textarea id="aAddr" placeholder="Poora pata"></textarea></div>
+      <div class="msg wide" id="aMsg"></div>
+      <div class="wide accbtns">
+        <button class="btn3d alt" type="submit" id="aSave">💾 SAVE ACCOUNT</button>
+        <button class="btn3d ghost sm" type="button" id="aClear">Clear</button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<div class="modal" id="prodModal" aria-hidden="true">
+  <div class="sheet">
+    <button type="button" class="mclose" data-close="prodModal" aria-label="Close">✕</button>
+    <h3 id="pTitle">Product Registration</h3>
+    <form id="prodForm" class="accform" novalidate>
+      <div class="field"><label>PRODUCT CODE</label><input type="text" id="pCode" readonly></div>
+      <div class="field span2"><label>PRODUCT NAME *</label><input type="text" id="pName" placeholder="Product ka naam"></div>
+      <div class="field"><label>PACK SIZE</label><input type="text" id="pPack" placeholder="e.g. 10x10, 500 ml, 1 kg"></div>
+      <div class="field"><label>COMPANY</label><input type="text" id="pCompany" list="pCompanies" placeholder="Company / brand"><datalist id="pCompanies"></datalist></div>
+      <div class="field"><label>CATEGORY</label><input type="text" id="pCat" placeholder="Category / group"></div>
+      <div class="field"><label>UNIT</label>
+        <select id="pUnit"><option>Pcs</option><option>Box</option><option>Carton</option><option>Pack</option><option>Strip</option><option>Bottle</option><option>Kg</option><option>Litre</option></select>
+      </div>
+      <div class="field"><label>BARCODE / SKU</label><input type="text" id="pBarcode" placeholder="Optional"></div>
+      <div class="field"><label>TAX %</label><input type="number" id="pTax" min="0" max="100" step="any" placeholder="0" inputmode="decimal"></div>
+      <div class="field"><label>PURCHASE RATE *</label><input type="number" id="pPur" min="0" step="any" placeholder="0" inputmode="decimal"></div>
+      <div class="field"><label>SALE RATE *</label><input type="number" id="pSale" min="0" step="any" placeholder="0" inputmode="decimal"></div>
+      <div class="field"><label>STOCK (QTY)</label><input type="number" id="pStock" min="0" step="any" placeholder="0" inputmode="decimal"></div>
+      <div class="field"><label>STOCK LIMIT (MIN ALERT)</label><input type="number" id="pLimit" min="0" step="any" placeholder="0" inputmode="decimal"></div>
+      <div class="hint" id="pMargin"></div>
+      <div class="field wide"><label>DESCRIPTION / NOTES</label><textarea id="pDesc" placeholder="Koi aur detail"></textarea></div>
+      <div class="msg wide" id="pMsg"></div>
+      <div class="wide accbtns">
+        <button class="btn3d alt" type="submit" id="pSave">💾 SAVE PRODUCT</button>
+        <button class="btn3d ghost sm" type="button" id="pClear">Clear</button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* =====================================================
+   ✏️  YAHAN APNI COMPANY KA NAAM LIKHO (sirf yehi change karna hai)
+   ===================================================== */
+const COMPANY_NAME = "NeoCube";
+
+(function(){
+  const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
+
+  /* company name sab jagah (logo text + browser tab title) */
+  $$('.brand-name').forEach(el=>el.textContent=COMPANY_NAME);
+  document.title=COMPANY_NAME+' – Login, Signup & Dashboard';
+
+  /* ---------- 3D background cubes ---------- */
+  const pal=[['#ff3d81','#ff8a5c'],['#7a5cff','#00d4ff'],['#2de2a6','#00d4ff'],['#ffd23f','#ff3d81'],['#a259ff','#ff3d81']];
+  const bg=$('#bg'), small=innerWidth<600;
+  const cubeHTML='<i></i><i></i><i></i><i></i><i></i><i></i>';
+  for(let i=0;i<(small?9:16);i++){
+    const c=document.createElement('div'), p=pal[i%pal.length];
+    c.className='cube'; c.innerHTML=cubeHTML;
+    c.style.cssText=`--s:${24+Math.random()*(small?40:70)}px;--a:${p[0]};--b:${p[1]};--d:${14+Math.random()*18}s;--dl:-${Math.random()*20}s;left:${Math.random()*95}%;top:${Math.random()*95}%`;
+    bg.appendChild(c);
+  }
+  /* logos */
+  $$('[data-logo]').forEach(el=>{const c=document.createElement('div');c.className='cube';c.style.setProperty('--a','#ffd23f');c.style.setProperty('--b','#ff3d81');c.innerHTML=cubeHTML;el.appendChild(c)});
+  $$('[data-logo-big]').forEach(el=>{const c=document.createElement('div');c.className='cube';c.style.setProperty('--a','#00d4ff');c.style.setProperty('--b','#ff3d81');c.innerHTML=cubeHTML;el.appendChild(c)});
+
+  /* ---------- helpers ---------- */
+  const toast=(m)=>{const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2600)};
+  const hash=async s=>{try{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}catch(e){return btoa(unescape(encodeURIComponent(s)))}};
+  const load=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}};
+  const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+  const users=()=>load('neocube_users')||{};
+  const emailOK=e=>/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
+  const shake=el=>el.animate([{transform:'translateX(0)'},{transform:'translateX(-8px)'},{transform:'translateX(8px)'},{transform:'translateX(-5px)'},{transform:'translateX(0)'}],{duration:350});
+
+  /* ---------- flip login <-> signup ---------- */
+  const flip=$('#flip');
+  $('#toSignup').onclick=()=>{flip.classList.add('is-signup')};
+  $('#toLogin').onclick=()=>{flip.classList.remove('is-signup')};
+
+  /* show/hide password */
+  $$('.eye').forEach(b=>b.onclick=()=>{const i=document.getElementById(b.dataset.eye);i.type=i.type==='password'?'text':'password';b.textContent=i.type==='password'?'👁':'🙈'});
+
+  /* password strength */
+  $('#sPass').addEventListener('input',e=>{
+    const v=e.target.value; let s=0;
+    if(v.length>=6)s++; if(v.length>=10)s++; if(/[A-Z]/.test(v)&&/[a-z]/.test(v))s++; if(/\d/.test(v)&&/[^A-Za-z0-9]/.test(v))s++;
+    const bar=$('#sBar'); bar.style.width=(v?(s+1)*20:0)+'%';
+    bar.style.background=['#ff3d81','#ff9f1c','#ffd23f','#9be15d','#2de2a6'][Math.min(s,4)];
+  });
+
+  /* ---------- signup ---------- */
+  $('#signupForm').addEventListener('submit',async e=>{
+    e.preventDefault();
+    const n=$('#sName').value.trim(), m=$('#sEmail').value.trim().toLowerCase(), p=$('#sPass').value, msg=$('#sMsg');
+    const fail=t=>{msg.textContent=t;shake(flip)};
+    if(n.length<2) return fail('Apna naam likho (kam az kam 2 letters).');
+    if(!emailOK(m)) return fail('Sahi email address likho.');
+    if(p.length<6) return fail('Password kam az kam 6 characters ka ho.');
+    const u=users(); if(u[m]) return fail('Ye email pehle se registered hai.');
+    u[m]={name:n,pass:await hash(p)}; save('neocube_users',u);
+    msg.textContent=''; e.target.reset(); $('#sBar').style.width='0';
+    toast('Account ban gaya! Ab login karo 🎉');
+    flip.classList.remove('is-signup'); $('#lEmail').value=m;
+  });
+
+  /* ---------- login ---------- */
+  $('#loginForm').addEventListener('submit',async e=>{
+    e.preventDefault();
+    const m=$('#lEmail').value.trim().toLowerCase(), p=$('#lPass').value, msg=$('#lMsg');
+    const fail=t=>{msg.textContent=t;shake(flip)};
+    if(!emailOK(m)) return fail('Sahi email address likho.');
+    if(!p) return fail('Password likho.');
+    const u=users()[m];
+    if(!u) return fail('Ye email registered nahi hai. Pehle sign up karo.');
+    if(u.pass!==await hash(p)) return fail('Password ghalat hai.');
+    msg.textContent=''; e.target.reset();
+    save('neocube_session',m); openDash(m);
+  });
+
+  /* ---------- dashboard ---------- */
+  const bars=[['Mon',55,'#ff3d81','#ff8a5c'],['Tue',78,'#7a5cff','#00d4ff'],['Wed',42,'#2de2a6','#00d4ff'],['Thu',92,'#ffd23f','#ff3d81'],['Fri',66,'#a259ff','#ff3d81'],['Sat',85,'#00d4ff','#2de2a6'],['Sun',48,'#ff9f1c','#ff3d81']];
+  const barsEl=$('#bars');
+  barsEl.innerHTML=bars.map(b=>`<div class="bar"><b data-h="${b[1]}" style="--k1:${b[2]};--k2:${b[3]}"></b><span>${b[0]}</span></div>`).join('');
+
+  function countUp(){
+    $$('[data-count]').forEach(el=>{
+      const end=+el.dataset.count, dec=+(el.dataset.dec||0), pre=el.dataset.pre||'', t0=performance.now(), dur=1400;
+      (function step(t){
+        const k=Math.min(1,(t-t0)/dur), v=end*(1-Math.pow(1-k,3));
+        el.textContent=pre+(dec?v.toFixed(dec):Math.round(v).toLocaleString());
+        if(k<1)requestAnimationFrame(step);
+      })(t0);
+    });
+  }
+  function animateRing(target){
+    const ring=$('#ring'), n=$('#ringN'), t0=performance.now();
+    (function step(t){
+      const k=Math.min(1,(t-t0)/1400), v=target*(1-Math.pow(1-k,3));
+      ring.style.setProperty('--p',v+'%'); n.textContent=Math.round(v)+'%';
+      if(k<1)requestAnimationFrame(step);
+    })(t0);
+  }
+  function openDash(email){
+    const u=users()[email]; if(!u){return logout(true)}
+    $('#auth').classList.remove('active'); $('#dash').classList.add('active');
+    const h=new Date().getHours(), g=h<12?'Good morning':h<17?'Good afternoon':'Good evening';
+    $('#greet').textContent=`${g}, ${u.name.split(' ')[0]}! 👋`;
+    $('#uName').firstChild.textContent=u.name; $('#uMail').textContent=email;
+    $('#uAv').textContent=u.name.trim()[0].toUpperCase();
+    scrollTo(0,0);
+    $$('.bar b').forEach(b=>b.style.height='0');
+    setTimeout(()=>$$('.bar b').forEach(b=>b.style.height=(b.dataset.h*1.7)+'px'),150);
+    countUp(); animateRing(72);
+    curUser=email; accFilter='all'; $('#aSearch').value=''; $$('#aFilter .chip').forEach(x=>x.classList.toggle('on',x.dataset.f==='all')); accReset(); accRender();
+    prodFilter='all'; $('#pSearch').value=''; $$('#pFilter .chip').forEach(x=>x.classList.toggle('on',x.dataset.f==='all')); prodReset(); prodRender();
+    toast('Login successful ✅');
+  }
+  function logout(silent){
+    $$('.modal.show').forEach(m=>{m.classList.remove('show');m.setAttribute('aria-hidden','true')}); document.body.style.overflow='';
+    curUser=null;
+    try{localStorage.removeItem('neocube_session')}catch(e){}
+    $('#dash').classList.remove('active'); $('#auth').classList.add('active');
+    flip.classList.remove('is-signup');
+    if(silent!==true) toast('Logout ho gaye 👋');
+  }
+  $('#logout').onclick=()=>logout();
+
+  /* ---------- 3D tilt (desktop only) ---------- */
+  if(matchMedia('(hover:hover) and (pointer:fine)').matches){
+    $$('.tilt').forEach(el=>{
+      el.addEventListener('mousemove',e=>{
+        const r=el.getBoundingClientRect(), x=(e.clientX-r.left)/r.width-.5, y=(e.clientY-r.top)/r.height-.5;
+        el.style.transform=`perspective(900px) rotateX(${(-y*12).toFixed(2)}deg) rotateY(${(x*14).toFixed(2)}deg) translateZ(12px)`;
+      });
+      el.addEventListener('mouseleave',()=>{el.style.transform=''});
+    });
+  }
+
+  /* ---------- account registration ---------- */
+  let curUser=null, accEdit=null, accType='party', accFilter='all';
+  const esc=t=>String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const accKey=()=>'neocube_accounts_'+curUser;
+  const accs=()=>load(accKey())||[];
+  const nextCode=()=>{
+    const n=accs().reduce((m,a)=>Math.max(m,parseInt(String(a.code).split('-')[1],10)||0),0)+1;
+    return 'ACC-'+String(n).padStart(4,'0');
+  };
+  function setType(t){
+    accType=t;
+    $$('#accType button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+    $('#aNameL').textContent=(t==='party'?'PARTY NAME':'SUPPLIER NAME')+' *';
+    if(!accEdit) $('#aDrCr').value=t==='party'?'Dr':'Cr';
+  }
+  function accReset(){
+    accEdit=null;
+    $('#accForm').reset();
+    $$('#accForm .field').forEach(f=>f.classList.remove('err'));
+    $('#aMsg').textContent='';
+    $('#aSave').textContent='💾 SAVE ACCOUNT'; $('#aClear').textContent='Cancel'; $('#aTitle').textContent='Account Registration';
+    $('#aCode').value=nextCode(); setType('party');
+  }
+  const money=n=>(+n||0).toLocaleString(undefined,{maximumFractionDigits:2});
+  function accRender(){
+    const q=$('#aSearch').value.trim().toLowerCase(), all=accs();
+    const list=all.filter(a=>(accFilter==='all'||(a.type||'party')===accFilter)&&(!q||[a.name,a.phone,a.code,a.city,a.person].some(v=>(v||'').toLowerCase().includes(q))));
+    const np=all.filter(a=>(a.type||'party')==='party').length;
+    $('#aCount').textContent=`(${np} party • ${all.length-np} supplier)`; $('#aBadge').textContent=all.length;
+    $('#aBody').innerHTML=list.length?list.map(a=>`<tr>
+      <td><b>${esc(a.code)}</b></td>
+      <td>${esc(a.name)}${a.person?`<small>${esc(a.person)}</small>`:''}</td>
+      <td><span class="tag ${a.type||'party'}">${(a.type||'party')==='party'?'Party':'Supplier'}</span></td>
+      <td>${esc(a.phone)}${a.email?`<small>${esc(a.email)}</small>`:''}</td>
+      <td>${esc(a.city)||'—'}</td>
+      <td>${a.limit?money(a.limit):'—'}</td>
+      <td>${money(a.open)} ${esc(a.drcr)}</td>
+      <td class="ac"><button class="ib" data-edit="${esc(a.code)}" title="Edit">✏️</button><button class="ib" data-del="${esc(a.code)}" title="Delete">🗑</button></td>
+    </tr>`).join(''):`<tr><td colspan="8" class="empty">${all.length?'Koi account nahi mila.':'Abhi koi account nahi. Menu mein "Account Register" se pehla account banao. ✨'}</td></tr>`;
+  }
+  $$('#accType button').forEach(b=>b.onclick=()=>setType(b.dataset.t));
+  $$('#aFilter .chip').forEach(c=>c.onclick=()=>{accFilter=c.dataset.f;$$('#aFilter .chip').forEach(x=>x.classList.toggle('on',x===c));accRender()});
+  $('#aSearch').addEventListener('input',accRender);
+  $('#aClear').onclick=()=>closeModal('accModal');
+
+  $('#accForm').addEventListener('submit',e=>{
+    e.preventDefault();
+    const g=id=>$('#'+id).value.trim(), msg=$('#aMsg');
+    $$('#accForm .field').forEach(f=>f.classList.remove('err'));
+    const fail=(t,id)=>{msg.textContent=t;$('#'+id).parentNode.classList.add('err');shake($('#accModal .sheet'))};
+    const name=g('aName'), phone=g('aPhone'), email=g('aEmail').toLowerCase();
+    if(name.length<2) return fail('Account ka naam likho (kam az kam 2 letters).','aName');
+    if(phone.replace(/\D/g,'').length<7||!/^[0-9+\-\s()]+$/.test(phone)) return fail('Sahi phone number likho.','aPhone');
+    if(email&&!emailOK(email)) return fail('Sahi email address likho.','aEmail');
+    if(+g('aOpen')<0) return fail('Opening balance minus nahi ho sakta.','aOpen');
+    if(+g('aLim')<0) return fail('Ye value minus nahi ho sakti.','aLim');
+    const list=accs();
+    if(list.some(a=>(a.type||'party')===accType&&a.name.toLowerCase()===name.toLowerCase()&&a.code!==(accEdit&&accEdit.code)))
+      return fail('Is naam ka '+(accType==='party'?'party':'supplier')+' account pehle se maujood hai.','aName');
+    const rec={type:accType,code:accEdit?accEdit.code:nextCode(),name,person:g('aPerson'),phone,email,city:g('aCity'),
+      tax:g('aTax'),limit:g('aLim'),open:g('aOpen')||'0',drcr:$('#aDrCr').value,addr:g('aAddr'),
+      created:accEdit?accEdit.created:Date.now()};
+    if(accEdit){ const i=list.findIndex(a=>a.code===accEdit.code); list[i]=rec; }
+    else list.push(rec);
+    save(accKey(),list);
+    const was=!!accEdit; closeModal('accModal'); accRender(); if(typeof prodRender==='function') prodRender();
+    toast(was?'Account update ho gaya ✅':(rec.type==='party'?'Party':'Supplier')+' account register ho gaya 🎉');
+  });
+
+  $('#aBody').addEventListener('click',e=>{
+    const be=e.target.closest('[data-edit]'), bd=e.target.closest('[data-del]');
+    if(be){
+      const a=accs().find(x=>x.code===be.dataset.edit); if(!a) return;
+      accEdit=a; setType(a.type||'party');
+      $('#aCode').value=a.code; $('#aName').value=a.name; $('#aPerson').value=a.person||''; $('#aPhone').value=a.phone;
+      $('#aEmail').value=a.email||''; $('#aCity').value=a.city||''; $('#aTax').value=a.tax||''; $('#aLim').value=a.limit||'';
+      $('#aOpen').value=a.open||''; $('#aDrCr').value=a.drcr; $('#aAddr').value=a.addr||'';
+      $('#aSave').textContent='💾 UPDATE ACCOUNT'; $('#aClear').textContent='Cancel'; $('#aTitle').textContent='Edit Account';
+      openModal('accModal');
+    }
+    if(bd){
+      const a=accs().find(x=>x.code===bd.dataset.del); if(!a) return;
+      if(!confirm(`"${a.name}" (${a.code}) delete kar dein?`)) return;
+      save(accKey(),accs().filter(x=>x.code!==a.code));
+      if(accEdit&&accEdit.code===a.code) accReset();
+      accRender(); toast('Account delete ho gaya 🗑');
+    }
+  });
+
+  /* ---------- product registration ---------- */
+  let prodEdit=null, prodFilter='all';
+  const prodKey=()=>'neocube_products_'+curUser;
+  const prods=()=>load(prodKey())||[];
+  const nextPCode=()=>'PRD-'+String(prods().reduce((m,a)=>Math.max(m,parseInt(a.code.split('-')[1],10)||0),0)+1).padStart(4,'0');
+  const isLow=a=>(+a.limit>0)&&(+a.stock<=+a.limit);
+  function pMargin(){
+    const pur=parseFloat($('#pPur').value), sale=parseFloat($('#pSale').value), h=$('#pMargin');
+    if(isNaN(pur)||isNaN(sale)){h.textContent='';h.classList.remove('neg');return}
+    const d=sale-pur, pct=pur>0?(d/pur*100):null;
+    h.classList.toggle('neg',d<0);
+    h.textContent=(d<0?'⚠️ Loss per unit: ':'✅ Profit per unit: ')+money(Math.abs(d))+(pct!==null?` (${pct.toFixed(1)}% ${d<0?'loss':'margin'})`:'');
+  }
+  function prodReset(){
+    prodEdit=null; $('#prodForm').reset();
+    $$('#prodForm .field').forEach(f=>f.classList.remove('err'));
+    $('#pMsg').textContent=''; $('#pCode').value=nextPCode();
+    $('#pSave').textContent='💾 SAVE PRODUCT'; $('#pClear').textContent='Cancel'; $('#pTitle').textContent='Product Registration'; pMargin();
+  }
+  function prodRender(){
+    const q=$('#pSearch').value.trim().toLowerCase(), all=prods();
+    const list=all.filter(a=>(prodFilter==='all'||isLow(a))&&(!q||[a.name,a.company,a.code,a.cat,a.barcode].some(v=>(v||'').toLowerCase().includes(q))));
+    $('#pCount').textContent=`(${all.length} products • ${all.filter(isLow).length} low stock)`; $('#pBadge').textContent=all.length;
+    const cos=[...new Set([...accs().map(a=>a.name),...all.map(a=>a.company).filter(Boolean)])];
+    $('#pCompanies').innerHTML=cos.map(c=>`<option value="${esc(c)}">`).join('');
+    $('#pBody').innerHTML=list.length?list.map(a=>`<tr>
+      <td><b>${esc(a.code)}</b></td>
+      <td>${esc(a.name)}${a.cat?`<small>${esc(a.cat)}</small>`:''}</td>
+      <td>${esc(a.pack)||'—'}</td>
+      <td>${esc(a.company)||'—'}</td>
+      <td>${money(a.pur)}</td>
+      <td>${money(a.sale)}</td>
+      <td>${money(a.stock)} ${esc(a.unit)} ${isLow(a)?'<span class="tag low">Low</span>':''}</td>
+      <td>${money(a.limit)}</td>
+      <td class="ac"><button class="ib" data-pedit="${esc(a.code)}" title="Edit">✏️</button><button class="ib" data-pdel="${esc(a.code)}" title="Delete">🗑</button></td>
+    </tr>`).join(''):`<tr><td colspan="9" class="empty">${prodFilter==='low'?'Koi product low stock mein nahi. 👍':'Abhi koi product nahi. Menu mein "Product Register" se pehla product banao. ✨'}</td></tr>`;
+  }
+  $('#pPur').addEventListener('input',pMargin); $('#pSale').addEventListener('input',pMargin);
+  $$('#pFilter .chip').forEach(c=>c.onclick=()=>{prodFilter=c.dataset.f;$$('#pFilter .chip').forEach(x=>x.classList.toggle('on',x===c));prodRender()});
+  $('#pSearch').addEventListener('input',prodRender);
+  $('#pClear').onclick=()=>closeModal('prodModal');
+
+  $('#prodForm').addEventListener('submit',e=>{
+    e.preventDefault();
+    const g=id=>$('#'+id).value.trim(), msg=$('#pMsg');
+    $$('#prodForm .field').forEach(f=>f.classList.remove('err'));
+    const fail=(t,id)=>{msg.textContent=t;$('#'+id).parentNode.classList.add('err');shake($('#prodModal .sheet'))};
+    const name=g('pName'), pack=g('pPack'), company=g('pCompany');
+    if(name.length<2) return fail('Product ka naam likho (kam az kam 2 letters).','pName');
+    if(g('pPur')===''||+g('pPur')<0) return fail('Purchase rate likho (minus nahi ho sakta).','pPur');
+    if(g('pSale')===''||+g('pSale')<0) return fail('Sale rate likho (minus nahi ho sakta).','pSale');
+    if(+g('pStock')<0) return fail('Stock minus nahi ho sakta.','pStock');
+    if(+g('pLimit')<0) return fail('Stock limit minus nahi ho sakti.','pLimit');
+    if(g('pTax')!==''&&(+g('pTax')<0||+g('pTax')>100)) return fail('Tax 0 se 100 ke darmiyan likho.','pTax');
+    const list=prods(), k=v=>v.toLowerCase();
+    if(list.some(a=>k(a.name)===k(name)&&k(a.pack||'')===k(pack)&&k(a.company||'')===k(company)&&a.code!==(prodEdit&&prodEdit.code)))
+      return fail('Ye product (same naam, pack aur company) pehle se maujood hai.','pName');
+    const rec={code:prodEdit?prodEdit.code:nextPCode(),name,pack,company,cat:g('pCat'),unit:$('#pUnit').value,barcode:g('pBarcode'),
+      tax:g('pTax'),pur:g('pPur'),sale:g('pSale'),stock:g('pStock')||'0',limit:g('pLimit')||'0',desc:g('pDesc'),
+      created:prodEdit?prodEdit.created:Date.now()};
+    if(prodEdit){const i=list.findIndex(a=>a.code===prodEdit.code);list[i]=rec}else list.push(rec);
+    save(prodKey(),list);
+    const was=!!prodEdit; closeModal('prodModal'); prodRender();
+    toast(was?'Product update ho gaya ✅':'Product register ho gaya 🎉');
+  });
+
+  $('#pBody').addEventListener('click',e=>{
+    const be=e.target.closest('[data-pedit]'), bd=e.target.closest('[data-pdel]');
+    if(be){
+      const a=prods().find(x=>x.code===be.dataset.pedit); if(!a) return;
+      prodEdit=a;
+      $('#pCode').value=a.code; $('#pName').value=a.name; $('#pPack').value=a.pack||''; $('#pCompany').value=a.company||'';
+      $('#pCat').value=a.cat||''; $('#pUnit').value=a.unit; $('#pBarcode').value=a.barcode||''; $('#pTax').value=a.tax||'';
+      $('#pPur').value=a.pur; $('#pSale').value=a.sale; $('#pStock').value=a.stock; $('#pLimit').value=a.limit; $('#pDesc').value=a.desc||'';
+      $('#pSave').textContent='💾 UPDATE PRODUCT'; $('#pClear').textContent='Cancel'; $('#pTitle').textContent='Edit Product'; pMargin();
+      openModal('prodModal');
+    }
+    if(bd){
+      const a=prods().find(x=>x.code===bd.dataset.pdel); if(!a) return;
+      if(!confirm(`"${a.name}" (${a.code}) delete kar dein?`)) return;
+      save(prodKey(),prods().filter(x=>x.code!==a.code));
+      if(prodEdit&&prodEdit.code===a.code) prodReset();
+      prodRender(); toast('Product delete ho gaya 🗑');
+    }
+  });
+
+  /* ---------- popup (modal) helpers ---------- */
+  function openModal(id){
+    const m=document.getElementById(id); m.classList.add('show'); m.setAttribute('aria-hidden','false');
+    m.scrollTop=0; document.body.style.overflow='hidden';
+  }
+  function closeModal(id){
+    const m=document.getElementById(id); m.classList.remove('show'); m.setAttribute('aria-hidden','true');
+    if(id==='accModal') accReset(); else if(id==='prodModal') prodReset();
+    if(!$('.modal.show')) document.body.style.overflow='';
+  }
+  $('#aNew').onclick=()=>{accReset();openModal('accModal')};
+  $('#pNew').onclick=()=>{prodReset();openModal('prodModal')};
+  $('#aList').onclick=()=>{accRender();openModal('accListModal')};
+  $('#pList').onclick=()=>{prodRender();openModal('prodListModal')};
+  $$('[data-close]').forEach(b=>b.onclick=()=>closeModal(b.dataset.close));
+  $$('.modal').forEach(m=>m.addEventListener('mousedown',e=>{if(e.target===m)closeModal(m.id)}));
+  addEventListener('keydown',e=>{if(e.key==='Escape'){const m=[...$$('.modal.show')].pop();if(m)closeModal(m.id)}});
+
+  /* ---------- restore session ---------- */
+  const s=load('neocube_session'); if(s&&users()[s]) openDash(s);
+
+  /* ---------- app install (PWA) ---------- */
+  if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
+    addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+  }
+})();
+</script>
+</body>
+</html>
