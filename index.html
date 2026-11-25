@@ -197,6 +197,53 @@ body{
 .tile.t-list{--t1:var(--c3);--t2:var(--c5);--tb:#0a7f8f}
 .tile.t-prd{--t1:var(--c4);--t2:#ff7a18;--tb:#a3560c}
 .tile.t-prdl{--t1:#a259ff;--t2:var(--c1);--tb:#5a2aa0}
+/* ---------- TRANSACTION FLIP CARD ---------- */
+.txflip{perspective:1600px;margin-bottom:22px}
+.txin{position:relative;transform-style:preserve-3d;height:150px;transition:transform .85s cubic-bezier(.68,-.3,.27,1.3),height .5s ease}
+.txflip.flipped .txin{transform:rotateY(180deg)}
+.txface{position:absolute;top:0;left:0;right:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:28px;
+  border:1px solid var(--glass-b);box-shadow:0 26px 50px rgba(10,0,50,.5),inset 0 1px 0 rgba(255,255,255,.55)}
+.txfront{background:linear-gradient(120deg,rgba(255,210,63,.6),rgba(255,61,129,.6),rgba(122,92,255,.6));padding:18px}
+.txback{transform:rotateY(180deg);padding:22px;background:linear-gradient(135deg,rgba(104,40,214,.97),rgba(190,30,120,.95) 55%,rgba(10,130,170,.96))}
+.txback::before{content:"";position:absolute;left:0;right:0;top:0;height:7px;border-radius:28px 28px 0 0;background:linear-gradient(90deg,var(--c1),var(--c4),var(--c5),var(--c3),var(--c2))}
+.txbig{display:flex;align-items:center;justify-content:center;gap:16px;width:100%;min-height:112px;border:0;cursor:pointer;color:#fff;font-family:inherit;border-radius:22px;
+  background:linear-gradient(135deg,var(--c1),var(--c2));
+  box-shadow:0 8px 0 #4a2bb0,0 18px 28px rgba(0,0,0,.4),inset 0 2px 0 rgba(255,255,255,.45);transition:transform .12s,box-shadow .12s,filter .2s}
+.txbig:hover{filter:brightness(1.1)}
+.txbig:active{transform:translateY(7px);box-shadow:0 1px 0 #4a2bb0,0 4px 8px rgba(0,0,0,.35),inset 0 2px 0 rgba(255,255,255,.4)}
+.txbig .ti{font-size:2.4rem}
+.txbig b{display:block;font-size:1.5rem;letter-spacing:1px;text-align:left}
+.txbig small{display:block;opacity:.9;font-size:.82rem;text-align:left;margin-top:2px}
+.txhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+.txhead h3{font-size:1.25rem;background:linear-gradient(90deg,#fff,var(--c4));-webkit-background-clip:text;background-clip:text;color:transparent}
+.txsub{opacity:.8;font-size:.85rem;margin-bottom:16px}
+.txtiles{display:grid;gap:14px;grid-template-columns:repeat(4,1fr)}
+.tile.t-sale{--t1:var(--c5);--t2:var(--c3);--tb:#0a8a68}
+.tile.t-pur{--t1:var(--c3);--t2:var(--c2);--tb:#2a3fb0}
+.tile.t-ret{--t1:var(--c1);--t2:#ff8a5c;--tb:#a3203f}
+.tile.t-pay{--t1:var(--c4);--t2:var(--c1);--tb:#a3560c}
+.txrow{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px;align-items:start}
+.txrow .txflip{margin-bottom:0;min-width:0}
+.txrow .txtiles{grid-template-columns:repeat(2,1fr)}
+.txrow .txbig{flex-direction:column;gap:6px;text-align:center;padding:10px}
+.txrow .txbig b,.txrow .txbig small{text-align:center}
+.txrow .txbig b{font-size:1.3rem}
+.rpfront{background:linear-gradient(120deg,rgba(45,226,166,.6),rgba(32,201,255,.6),rgba(122,92,255,.6))}
+.rpbig{background:linear-gradient(135deg,var(--c5),var(--c3))!important;box-shadow:0 8px 0 #0a7f8f,0 18px 28px rgba(0,0,0,.4),inset 0 2px 0 rgba(255,255,255,.45)!important}
+.rpbig:active{transform:translateY(7px);box-shadow:0 1px 0 #0a7f8f,0 4px 8px rgba(0,0,0,.35),inset 0 2px 0 rgba(255,255,255,.4)!important}
+.rpback{background:linear-gradient(135deg,rgba(10,130,170,.97),rgba(104,40,214,.96) 55%,rgba(45,180,140,.95))!important}
+@media(max-width:700px){.txrow{grid-template-columns:1fr}}
+.txflip{transition:transform .2s ease-out}
+.txflip:not(.flipped) .txfront{transition:box-shadow .3s}
+.txflip:not(.flipped):hover .txfront{box-shadow:0 34px 60px rgba(10,0,50,.6),inset 0 1px 0 rgba(255,255,255,.55)}
+.txrow.open{grid-template-columns:1fr}
+.txrow.open .txflip:not(.flipped){display:none}
+.txrow.open .txtiles{grid-template-columns:repeat(4,1fr)}
+@media(max-width:900px){.txrow.open .txtiles{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:700px){.txrow.open .txtiles{grid-template-columns:repeat(2,1fr)}}
+.txph{text-align:center;padding:26px 10px 10px}
+.txph .big{font-size:3.4rem;margin-bottom:8px}
+.txph p{opacity:.9;max-width:380px;margin:6px auto 0;font-size:.95rem}
 .sheet.wide{max-width:1040px}
 /* colourful popups */
 .sheet{background:linear-gradient(135deg,rgba(104,40,214,.97) 0%,rgba(190,30,120,.95) 48%,rgba(10,130,170,.96) 100%)!important;overflow:hidden}
@@ -272,6 +319,9 @@ body{
 .sheet h3 small{opacity:.7;font-weight:500;font-size:.78rem;margin-left:6px}
 .mclose{position:absolute;top:16px;right:16px;width:38px;height:38px;border:0;border-radius:12px;background:rgba(255,255,255,.16);color:#fff;font-size:1.1rem;cursor:pointer}
 .mclose:hover{background:rgba(255,255,255,.3)}
+@media(max-width:900px){.txtiles{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:700px){.txtiles{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.txback{padding:18px 14px}.txbig b{font-size:1.2rem}.txbig .ti{font-size:2rem}.txface{border-radius:24px}}
 @media(max-width:520px){.modal{padding:12px 8px}.sheet{padding:20px 16px;border-radius:22px}}
 
 /* toast */
@@ -378,21 +428,47 @@ body{
     <div class="card stat tilt"><div class="ico">⭐</div><span class="chg dn">-1.4%</span><div class="num" data-count="4.8" data-dec="1">0</div><div class="lbl">Avg. Rating</div></div>
   </section>
 
-  <section class="card acc menu" id="menu">
-    <h3>🧭 Menu</h3>
-    <div class="msub">Register karne ya list dekhne ke liye button dabao.</div>
-
-    <div class="mgroup">ACCOUNTS</div>
-    <div class="tiles">
-      <button class="tile t-acc" type="button" id="aNew"><span class="ti">➕</span><b>Account Register</b><small>Naya account banao</small></button>
-      <button class="tile t-list" type="button" id="aList"><span class="bdg" id="aBadge">0</span><span class="ti">📒</span><b>Account List</b><small>Sab accounts dekho</small></button>
+  <section class="txrow">
+  <div class="txflip" id="txFlip">
+    <div class="txin">
+      <div class="txface txfront">
+        <button class="txbig" type="button" id="txOpen"><span class="ti">💱</span><span><b>TRANSACTION</b><small>Sale, Purchase, Return, Voucher aur naye accounts yahan se</small></span></button>
+      </div>
+      <div class="txface txback">
+        <div class="txhead">
+          <h3>💱 Transaction</h3>
+          <button class="btn3d ghost sm" type="button" id="txBack">↩ Back</button>
+        </div>
+        <div class="txsub">Jo karna hai uska button dabao.</div>
+        <div class="txtiles">
+          <button class="tile t-acc" type="button" data-tx="account"><span class="ti">👥</span><b>New Account</b><small>Party / Supplier register</small></button>
+          <button class="tile t-prd" type="button" data-tx="product"><span class="ti">📦</span><b>New Product</b><small>Naya product register</small></button>
+          <button class="tile t-sale" type="button" data-tx="sale" data-title="Sale" data-ico="🧾"><span class="ti">🧾</span><b>Sale</b><small>Bikri ka bill</small></button>
+          <button class="tile t-pur" type="button" data-tx="purchase" data-title="Purchase" data-ico="🛒"><span class="ti">🛒</span><b>Purchase</b><small>Khareed ka bill</small></button>
+          <button class="tile t-ret" type="button" data-tx="return" data-title="Return" data-ico="↩️"><span class="ti">↩️</span><b>Return</b><small>Sale / Purchase wapsi</small></button>
+          <button class="tile t-pay" type="button" data-tx="payment" data-title="Payment Voucher" data-ico="💵"><span class="ti">💵</span><b>Payment Voucher</b><small>Payment / receipt voucher</small></button>
+          <button class="tile t-list" type="button" id="aList"><span class="bdg" id="aBadge">0</span><span class="ti">📒</span><b>Account List</b><small>Sab accounts dekho</small></button>
+          <button class="tile t-prdl" type="button" id="pList"><span class="bdg" id="pBadge">0</span><span class="ti">📦</span><b>Product List</b><small>Sab products dekho</small></button>
+        </div>
+      </div>
     </div>
+  </div>
 
-    <div class="mgroup">PRODUCTS</div>
-    <div class="tiles">
-      <button class="tile t-prd" type="button" id="pNew"><span class="ti">➕</span><b>Product Register</b><small>Naya product banao</small></button>
-      <button class="tile t-prdl" type="button" id="pList"><span class="bdg" id="pBadge">0</span><span class="ti">📦</span><b>Product List</b><small>Sab products dekho</small></button>
+  <div class="txflip" id="rpFlip">
+    <div class="txin">
+      <div class="txface txfront rpfront">
+        <button class="txbig rpbig" type="button" id="rpOpen"><span class="ti">📊</span><span><b>REPORTS</b><small>Sab reports yahan se dekho</small></span></button>
+      </div>
+      <div class="txface txback rpback">
+        <div class="txhead">
+          <h3>📊 Reports</h3>
+          <button class="btn3d ghost sm" type="button" id="rpBack">↩ Back</button>
+        </div>
+        <div class="txsub">Reports yahan nazar aayengi.</div>
+        <div class="txph"><div class="big">🛠️</div><b>Reports jald add hongi</b><p>Abhi koi report nahi hai. Jab report banegi to uska button yahan aa jayega.</p></div>
+      </div>
     </div>
+  </div>
   </section>
 
   <section class="row">
@@ -526,6 +602,18 @@ body{
   </div>
 </div>
 
+<div class="modal" id="txnModal" aria-hidden="true">
+  <div class="sheet">
+    <button type="button" class="mclose" data-close="txnModal" aria-label="Close">✕</button>
+    <h3 id="txnTitle">Transaction</h3>
+    <div class="txph">
+      <div class="big" id="txnIco">🧾</div>
+      <b id="txnName">Form</b>
+      <p>Is form ki fields abhi add nahi hui. Aap batao kaun kaun si fields chahiye, main yahan laga dunga.</p>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -642,7 +730,7 @@ const COMPANY_NAME = "NeoCube";
     scrollTo(0,0);
     $$('.bar b').forEach(b=>b.style.height='0');
     setTimeout(()=>$$('.bar b').forEach(b=>b.style.height=(b.dataset.h*1.7)+'px'),150);
-    countUp(); animateRing(72);
+    countUp(); animateRing(72); txReset();
     curUser=email; accFilter='all'; $('#aSearch').value=''; $$('#aFilter .chip').forEach(x=>x.classList.toggle('on',x.dataset.f==='all')); accReset(); accRender();
     prodFilter='all'; $('#pSearch').value=''; $$('#pFilter .chip').forEach(x=>x.classList.toggle('on',x.dataset.f==='all')); prodReset(); prodRender();
     toast('Login successful ✅');
@@ -661,6 +749,18 @@ const COMPANY_NAME = "NeoCube";
   if(matchMedia('(hover:hover) and (pointer:fine)').matches){
     $$('.tilt').forEach(el=>{
       el.addEventListener('mousemove',e=>{
+        const r=el.getBoundingClientRect(), x=(e.clientX-r.left)/r.width-.5, y=(e.clientY-r.top)/r.height-.5;
+        el.style.transform=`perspective(900px) rotateX(${(-y*12).toFixed(2)}deg) rotateY(${(x*14).toFixed(2)}deg) translateZ(12px)`;
+      });
+      el.addEventListener('mouseleave',()=>{el.style.transform=''});
+    });
+  }
+
+  /* ---------- 3D tilt on Transaction / Reports (desktop only) ---------- */
+  if(matchMedia('(hover:hover) and (pointer:fine)').matches){
+    $$('.txflip').forEach(el=>{
+      el.addEventListener('mousemove',e=>{
+        if(el.classList.contains('flipped')) return;
         const r=el.getBoundingClientRect(), x=(e.clientX-r.left)/r.width-.5, y=(e.clientY-r.top)/r.height-.5;
         el.style.transform=`perspective(900px) rotateX(${(-y*12).toFixed(2)}deg) rotateY(${(x*14).toFixed(2)}deg) translateZ(12px)`;
       });
@@ -853,13 +953,40 @@ const COMPANY_NAME = "NeoCube";
     if(id==='accModal') accReset(); else if(id==='prodModal') prodReset();
     if(!$('.modal.show')) document.body.style.overflow='';
   }
-  $('#aNew').onclick=()=>{accReset();openModal('accModal')};
-  $('#pNew').onclick=()=>{prodReset();openModal('prodModal')};
   $('#aList').onclick=()=>{accRender();openModal('accListModal')};
   $('#pList').onclick=()=>{prodRender();openModal('prodListModal')};
   $$('[data-close]').forEach(b=>b.onclick=()=>closeModal(b.dataset.close));
   $$('.modal').forEach(m=>m.addEventListener('mousedown',e=>{if(e.target===m)closeModal(m.id)}));
   addEventListener('keydown',e=>{if(e.key==='Escape'){const m=[...$$('.modal.show')].pop();if(m)closeModal(m.id)}});
+
+  /* ---------- Transaction flip card ---------- */
+  const flipCards=[];
+  function makeFlip(rootSel,openSel,backSel){
+    const root=$(rootSel); if(!root) return;
+    const inner=root.querySelector('.txin'); let flipped=false;
+    const card={
+      size(){const face=root.querySelector(flipped?'.txback':'.txfront'); if(!face) return; const h=face.offsetHeight; if(h) inner.style.height=h+'px';},
+      set(on){flipped=!!on; root.style.transform=''; root.parentElement.classList.toggle('open',flipped); root.classList.toggle('flipped',flipped); card.size();}
+    };
+    $(openSel).onclick=()=>card.set(true);
+    $(backSel).onclick=()=>card.set(false);
+    if('ResizeObserver' in window){const ro=new ResizeObserver(card.size); root.querySelectorAll('.txface').forEach(f=>ro.observe(f));}
+    flipCards.push(card);
+  }
+  makeFlip('#txFlip','#txOpen','#txBack');
+  makeFlip('#rpFlip','#rpOpen','#rpBack');
+  function txReset(){ flipCards.forEach(c=>c.set(false)); requestAnimationFrame(()=>flipCards.forEach(c=>c.size())); }
+  addEventListener('resize',()=>flipCards.forEach(c=>c.size()));
+  $$('[data-tx]').forEach(b=>b.onclick=()=>{
+    const t=b.dataset.tx;
+    if(t==='account'){accReset();openModal('accModal')}
+    else if(t==='product'){prodReset();openModal('prodModal')}
+    else{
+      $('#txnTitle').textContent=b.dataset.ico+' '+b.dataset.title;
+      $('#txnIco').textContent=b.dataset.ico; $('#txnName').textContent=b.dataset.title+' Form';
+      openModal('txnModal');
+    }
+  });
 
   /* ---------- restore session ---------- */
   const s=load('neocube_session'); if(s&&users()[s]) openDash(s);

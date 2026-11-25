@@ -1,5 +1,5 @@
 // Simple offline cache. Jab index.html mein badlav karo to VERSION ka number barha do.
-const VERSION = 'v6';
+const VERSION = 'v10';
 const CACHE = 'app-' + VERSION;
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
